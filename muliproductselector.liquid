@@ -1,0 +1,85 @@
+{% comment %}
+  This is the liquid code for a single product page
+{% endcomment %}
+
+{% if product %}
+  <div class="product">
+    <div class="product-image">
+      <img src="{{ product.featured_image | img_url: 'large' }}" alt="{{ product.title }}">
+    </div>
+    <div class="product-info">
+      <h1 class="product-title">{{ product.title }}</h1>
+      <p class="product-tags">
+        {% for tag in product.tags %}
+          <span class="tag">{{ tag }}</span>
+        {% endfor %}
+      </p>
+      <label for="custom-price1">Custom Price 1:</label>
+      <input type="number" name="custom_price1" id="custom-price1" min="0" step="0.01">
+      <label for="custom-price2">Custom Price 2:</label>
+      <input type="number" name="custom_price2" id="custom-price2" min="0" step="0.01">
+      <!-- Add more custom price inputs as needed -->
+
+      <button type="button" id="apply-custom-prices">Apply</button>
+      <p class="product-price">
+        {% assign mainPrice = product.price | plus: 0 %}
+        {% assign customPrice1 = 0 %}
+        {% assign customPrice2 = 0 %}
+        <!-- Add more custom price variables as needed -->
+
+        {% if product.price %}
+          {{ mainPrice | money }}
+        {% endif %}
+
+        {% if product.price and customPrice1 > 0 %}
+          + {{ customPrice1 | money }}
+        {% elsif customPrice1 > 0 %}
+          {{ customPrice1 | money }}
+        {% endif %}
+
+        {% if product.price and customPrice2 > 0 %}
+          + {{ customPrice2 | money }}
+        {% elsif customPrice2 > 0 %}
+          {{ customPrice2 | money }}
+        {% endif %}
+        <!-- Add more conditions for additional custom prices as needed -->
+      </p>
+
+      <form action="/cart/add" method="post" enctype="multipart/form-data" class="product-form">
+        <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+        <input type="hidden" name="properties[Custom Price 1]" id="custom-price1-hidden" value="0">
+        <input type="hidden" name="properties[Custom Price 2]" id="custom-price2-hidden" value="0">
+        <!-- Add more hidden input fields for custom prices as needed -->
+
+        <input type="hidden" name="properties[Main Price]" id="main-price-hidden" value="{{ product.price }}">
+        <!-- Hidden input field for main product price -->
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="quantity" id="quantity" value="1" min="1">
+        <button type="submit" class="btn-add-to-cart">Add to Cart</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('apply-custom-prices').addEventListener('click', function() {
+      var customPrice1 = parseFloat(document.getElementById('custom-price1').value) || 0;
+      var customPrice2 = parseFloat(document.getElementById('custom-price2').value) || 0;
+      // Get more custom prices as needed
+
+      var mainPrice = parseFloat(document.getElementById('main-price-hidden').value) || 0;
+      var totalPrice = mainPrice + customPrice1 + customPrice2;
+      // Calculate total price by adding main price and custom prices
+
+      document.getElementById('custom-price1-hidden').value = customPrice1;
+      document.getElementById('custom-price2-hidden').value = customPrice2;
+      // Set hidden input values for custom prices
+      // Set more hidden input values for custom prices as needed
+
+      document.querySelector('.product-price').innerHTML = Shopify.formatMoney(totalPrice, "{{ shop.money_format }}");
+      // Update displayed price with total price
+    });
+  </script>
+{% else %}
+  <p>Product not found.</p>
+{% endif %}
